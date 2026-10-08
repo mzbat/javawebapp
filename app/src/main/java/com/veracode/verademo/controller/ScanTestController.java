@@ -2,15 +2,19 @@ package com.veracode.verademo.controller;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Base64;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.log4j.LogManager;
@@ -98,6 +102,41 @@ public class ScanTestController {
 	public String greet(@RequestParam(value = "template") String template) {
 		/* START EXAMPLE VULNERABILITY: Text4Shell (commons-text 1.9, CVE-2022-42889) */
 		return StringSubstitutor.createInterpolator().replace(template);
+		/* END EXAMPLE VULNERABILITY */
+	}
+
+	@RequestMapping(value = "/scantest/file2", method = RequestMethod.GET)
+	@ResponseBody
+	public String readFileNoBase(@RequestParam(value = "path") String path) throws IOException {
+		/* START EXAMPLE VULNERABILITY: path traversal (variant A: no base directory) */
+		return new String(Files.readAllBytes(new File(path).toPath()));
+		/* END EXAMPLE VULNERABILITY */
+	}
+
+	@RequestMapping(value = "/scantest/file3", method = RequestMethod.GET)
+	@ResponseBody
+	public String readFilePaths(@RequestParam(value = "name") String name) throws IOException {
+		/* START EXAMPLE VULNERABILITY: path traversal (variant B: Paths.get) */
+		return new String(Files.readAllBytes(Paths.get("/app/reports", name)));
+		/* END EXAMPLE VULNERABILITY */
+	}
+
+	@RequestMapping(value = "/scantest/file4", method = RequestMethod.GET)
+	@ResponseBody
+	public String readFileStream(@RequestParam(value = "name") String name) throws IOException {
+		/* START EXAMPLE VULNERABILITY: path traversal (variant C: FileInputStream) */
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream("/app/reports/" + name)))) {
+			return in.lines().collect(java.util.stream.Collectors.joining("\n"));
+		}
+		/* END EXAMPLE VULNERABILITY */
+	}
+
+	@RequestMapping(value = "/scantest/file5", method = RequestMethod.GET)
+	@ResponseBody
+	public String readFileServlet(HttpServletRequest req) throws IOException {
+		/* START EXAMPLE VULNERABILITY: path traversal (variant D: servlet getParameter source) */
+		String name = req.getParameter("name");
+		return new String(Files.readAllBytes(new File("/app/reports/" + name).toPath()));
 		/* END EXAMPLE VULNERABILITY */
 	}
 }
