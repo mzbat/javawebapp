@@ -132,6 +132,12 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.0</version>
 		</dependency>
+		<!-- TEST FIXTURE FOR AIKIDO PR SCANNING - DO NOT MERGE: vulnerable to CVE-2022-42889 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.9</version>
+		</dependency>
 	</dependencies>
 
 	<build>
